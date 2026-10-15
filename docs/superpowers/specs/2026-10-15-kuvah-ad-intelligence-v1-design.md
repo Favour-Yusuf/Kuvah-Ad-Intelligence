@@ -48,9 +48,9 @@ store tracking, bulk ad ingestion or creative watermark removal.
 | Sign-in | Email magic link, invite only. Public sign-up disabled; `signInWithOtp` uses `shouldCreateUser: false` |
 | Reads | Server Components through the user-scoped Supabase client (RLS enforced) |
 | Writes | Route Handlers under `app/api`, validated with zod |
-| AI | Anthropic Claude (`claude-sonnet-5-5`) behind a provider-agnostic `AdAnalyzer` interface |
+| AI | Anthropic Claude (default `claude-opus-5-5`, configurable via `ANTHROPIC_MODEL`) with server-side refusal fallbacks, behind a provider-agnostic `AdAnalyzer` interface |
 | Ingestion | Manual capture only, behind an `AdSourceAdapter` interface for future authorised sources |
-| Tests | Vitest for unit and route tests. RLS tests run against a separate test Supabase project and are skipped when its env vars are absent |
+| Tests | Vitest for unit and route tests. RLS tests apply the migrations to in-process Postgres (PGlite) with Supabase auth/storage shims; no Docker or extra project |
 
 ## 5. Architecture
 
@@ -290,8 +290,8 @@ conversions. Earlier runs are listed with model and timestamp.
   building.
 - **Route handlers**: analysis route with the fake analyzer (success, failure,
   rate limit, unauthenticated, non-member) using a mocked data layer.
-- **RLS (`tests/rls`)**: against a separate test Supabase project when
-  `SUPABASE_TEST_*` env vars are set. A non-member cannot read or write; a
+- **RLS (`tests/rls`)**: against in-process Postgres (PGlite) with the real migrations;
+  a non-member cannot read or write; a
   member cannot delete another member's ad; an admin can.
 - Lint and `next build` must pass before each module is marked complete.
 
