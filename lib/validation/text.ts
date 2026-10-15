@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 // Control characters other than tab, newline and carriage return.
-// eslint-disable-next-line no-control-regex
 const CONTROL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
 
 /** Trims, strips control characters and normalises line endings. */
