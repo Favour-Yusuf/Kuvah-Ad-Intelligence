@@ -5,13 +5,17 @@ import Link from "next/link";
 import { Columns3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { AddToCollection } from "@/components/collections/add-to-collection";
 
 export const MAX_COMPARE = 4;
 
 type Item = { id: string; brand: string; card: ReactNode };
 
-/** Grid of server-rendered cards with a selection bar for comparing. */
-export function SelectableAdGrid({ items }: { items: Item[] }) {
+/**
+ * Grid of server-rendered cards with a selection bar for comparing and, when
+ * `collections` is given, adding the selection to a collection.
+ */
+export function SelectableAdGrid({ items, collections }: { items: Item[]; collections?: { id: string; name: string }[] }) {
   const [selected, setSelected] = useState<string[]>([]);
   const clear = () => setSelected([]);
 
@@ -58,6 +62,7 @@ export function SelectableAdGrid({ items }: { items: Item[] }) {
               Compare (2–{MAX_COMPARE})
             </Button>
           )}
+          {collections ? <AddToCollection adIds={selected} collections={collections} onDone={clear} /> : null}
           <Button size="sm" variant="ghost" onClick={clear}>
             Clear selection
           </Button>

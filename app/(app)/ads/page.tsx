@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { requireMemberPage } from "@/lib/auth";
 import { distinctValues, listAds } from "@/lib/data/ads";
 import { listTagNames } from "@/lib/data/tags";
+import { listCollectionOptions } from "@/lib/data/collections";
 import { activeFilterCount, parseLibraryFilters } from "@/lib/validation/filters";
 
 export const metadata: Metadata = { title: "Ad library" };
@@ -39,11 +40,12 @@ export default function LibraryPage({ searchParams }: PageProps<"/ads">) {
 async function Library({ searchParams }: { searchParams: PageProps<"/ads">["searchParams"] }) {
   const filters = parseLibraryFilters(await searchParams);
   const { supabase } = await requireMemberPage();
-  const [result, industries, angles, tags] = await Promise.all([
+  const [result, industries, angles, tags, collections] = await Promise.all([
     listAds(supabase, filters),
     distinctValues(supabase, "industry"),
     distinctValues(supabase, "marketing_angle"),
     listTagNames(supabase),
+    listCollectionOptions(supabase),
   ]);
   const filtered = activeFilterCount(filters) > 0;
 
@@ -68,7 +70,10 @@ async function Library({ searchParams }: { searchParams: PageProps<"/ads">["sear
           />
         )
       ) : (
-        <SelectableAdGrid items={result.rows.map((ad) => ({ id: ad.id, brand: ad.brand, card: <AdCard ad={ad} /> }))} />
+        <SelectableAdGrid
+          collections={collections}
+          items={result.rows.map((ad) => ({ id: ad.id, brand: ad.brand, card: <AdCard ad={ad} /> }))}
+        />
       )}
 
       <Pagination filters={filters} page={result.page} pageCount={result.pageCount} />

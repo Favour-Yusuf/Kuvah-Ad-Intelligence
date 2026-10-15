@@ -6,6 +6,7 @@ import { Pencil } from "lucide-react";
 import { AnalysisStatusBadge, CountryBadge, FormatBadge, PlatformBadge } from "@/components/ads/ad-badges";
 import { DeleteAdButton } from "@/components/ads/delete-ad-button";
 import { ObservedPane } from "@/components/ads/observed-pane";
+import { OrganiseSection } from "@/components/ads/organise-section";
 import { AnalysisPanel } from "@/components/analysis/analysis-panel";
 import { DetailSkeleton } from "@/components/layout/states";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,10 @@ import { parseId } from "@/lib/api";
 import { requireMemberPage } from "@/lib/auth";
 import { getAd } from "@/lib/data/ads";
 import { listAnalysesForAd } from "@/lib/data/analyses";
+import { collectionsForAd, listCollectionOptions } from "@/lib/data/collections";
+import { listNotes } from "@/lib/data/notes";
+import { getAdTags, listTagNames } from "@/lib/data/tags";
+import { teamNames } from "@/lib/data/team";
 import { signedCreativeUrl } from "@/lib/data/creatives";
 import { formatDate } from "@/lib/format";
 
@@ -32,9 +37,15 @@ async function AdDetail({ params }: { params: PageProps<"/ads/[id]">["params"] }
   const { supabase, member } = await requireMemberPage();
   const ad = await getAd(supabase, id);
   if (!ad) notFound();
-  const [creativeUrl, analyses] = await Promise.all([
+  const [creativeUrl, analyses, tags, tagSuggestions, memberOf, collections, notes, names] = await Promise.all([
     signedCreativeUrl(supabase, ad.creative_path),
     listAnalysesForAd(supabase, ad.id),
+    getAdTags(supabase, ad.id),
+    listTagNames(supabase),
+    collectionsForAd(supabase, ad.id),
+    listCollectionOptions(supabase),
+    listNotes(supabase, ad.id),
+    teamNames(supabase),
   ]);
   const canDelete = ad.created_by === member.id || member.role === "admin";
 
@@ -64,6 +75,17 @@ async function AdDetail({ params }: { params: PageProps<"/ads/[id]">["params"] }
         <ObservedPane ad={ad} creativeUrl={creativeUrl} />
         <AnalysisPanel ad={ad} analyses={analyses} />
       </div>
+
+      <OrganiseSection
+        adId={ad.id}
+        member={member}
+        tags={tags}
+        tagSuggestions={tagSuggestions}
+        memberOf={memberOf}
+        collections={collections}
+        notes={notes}
+        names={names}
+      />
     </>
   );
 }
