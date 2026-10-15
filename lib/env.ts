@@ -10,7 +10,7 @@ const serverSchema = z.object({
   SUPABASE_SECRET_KEY: z.string().min(1),
   ANALYSIS_PROVIDER: z.enum(["anthropic", "fake"]).default("anthropic"),
   ANTHROPIC_API_KEY: z.string().optional(),
-  ANTHROPIC_MODEL: z.string().min(1).default("claude-sonnet-5-5"),
+  ANTHROPIC_MODEL: z.string().min(1).default("claude-opus-5-5"),
 });
 
 export type PublicEnv = z.infer<typeof publicSchema>;

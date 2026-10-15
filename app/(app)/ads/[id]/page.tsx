@@ -6,11 +6,13 @@ import { Pencil } from "lucide-react";
 import { AnalysisStatusBadge, CountryBadge, FormatBadge, PlatformBadge } from "@/components/ads/ad-badges";
 import { DeleteAdButton } from "@/components/ads/delete-ad-button";
 import { ObservedPane } from "@/components/ads/observed-pane";
+import { AnalysisPanel } from "@/components/analysis/analysis-panel";
 import { DetailSkeleton } from "@/components/layout/states";
 import { Button } from "@/components/ui/button";
 import { parseId } from "@/lib/api";
 import { requireMemberPage } from "@/lib/auth";
 import { getAd } from "@/lib/data/ads";
+import { listAnalysesForAd } from "@/lib/data/analyses";
 import { signedCreativeUrl } from "@/lib/data/creatives";
 import { formatDate } from "@/lib/format";
 
@@ -30,7 +32,10 @@ async function AdDetail({ params }: { params: PageProps<"/ads/[id]">["params"] }
   const { supabase, member } = await requireMemberPage();
   const ad = await getAd(supabase, id);
   if (!ad) notFound();
-  const creativeUrl = await signedCreativeUrl(supabase, ad.creative_path);
+  const [creativeUrl, analyses] = await Promise.all([
+    signedCreativeUrl(supabase, ad.creative_path),
+    listAnalysesForAd(supabase, ad.id),
+  ]);
   const canDelete = ad.created_by === member.id || member.role === "admin";
 
   return (
@@ -57,9 +62,7 @@ async function AdDetail({ params }: { params: PageProps<"/ads/[id]">["params"] }
 
       <div className="grid items-start gap-6 lg:grid-cols-2">
         <ObservedPane ad={ad} creativeUrl={creativeUrl} />
-        <section aria-label="AI analysis" className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
-          AI analysis arrives in a later module.
-        </section>
+        <AnalysisPanel ad={ad} analyses={analyses} />
       </div>
     </>
   );

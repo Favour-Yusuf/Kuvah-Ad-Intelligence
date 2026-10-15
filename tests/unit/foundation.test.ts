@@ -34,7 +34,7 @@ describe("parseServerEnv", () => {
   it("allows the fake provider without an Anthropic key", () => {
     const env = parseServerEnv({ SUPABASE_SECRET_KEY: "s", ANALYSIS_PROVIDER: "fake" });
     expect(env.ANALYSIS_PROVIDER).toBe("fake");
-    expect(env.ANTHROPIC_MODEL).toBe("claude-sonnet-5-5");
+    expect(env.ANTHROPIC_MODEL).toBe("claude-opus-5-5");
   });
 
   it("rejects an unknown provider", () => {

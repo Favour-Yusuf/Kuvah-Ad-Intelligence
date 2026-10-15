@@ -96,6 +96,18 @@ describe("team members", () => {
     expect(res.rows[0].analysis_status).toBe("none");
   });
 
+  it("sees runs stuck in pending as failed in the library view", async () => {
+    const stuck = await asUserCommit<{ id: string }>(db, MEMBER, INSERT_AD, ["https://example.com/s", "Stuck", null]);
+    await db.query(
+      "insert into public.ad_analyses (ad_id, provider, model, input_hash, created_by, created_at) values ($1, 'fake', 'm', repeat('c', 64), $2, now() - interval '10 minutes')",
+      [stuck.rows[0].id, MEMBER],
+    );
+    const res = await asUser<{ analysis_status: string }>(db, MEMBER, "select analysis_status from public.ad_library where id = $1", [
+      stuck.rows[0].id,
+    ]);
+    expect(res.rows[0].analysis_status).toBe("failed");
+  });
+
   it("cannot spoof created_by when creating an ad", async () => {
     const res = await asUser<{ created_by: string }>(db, MEMBER, INSERT_AD, ["https://example.com/b", "Mine", ADMIN]);
     expect(res.rows[0].created_by).toBe(MEMBER);
